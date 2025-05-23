@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Directorio de iniciativas culturales y festivas de Kennedy</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #2c3e50;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    p {
+      line-height: 1.6;
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    input, select, button, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    #map {
+      height: 300px;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1a252f;
+    }
+    #mensaje {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Directorio de iniciativas culturales y festivas de Kennedy</h1>
+  
+  <p>¡Bienvenidx!</p>
+  <p>Este formulario hace parte de la construcción colectiva de un Directorio de Iniciativas Culturales y Festivas de Kennedy.</p>
+  <p>Nuestro objetivo es visibilizar, conectar y fortalecer a las personas, colectivos y organizaciones que transforman el territorio a través de procesos culturales, artísticos, patrimoniales o festivos. La información recopilada servirá para crear un mapa público y un directorio abierto que ayude a identificar redes, sumar colaboraciones y hacer más visible nuestro quehacer comunitario.</p>
+  <p>📝 Por favor, completa los campos con claridad.</p>
+
+  <form id="formulario">
+    <label for="iniciativa">Nombre de la iniciativa:</label>
+    <input type="text" id="iniciativa" name="iniciativa" required />
+
+    <label for="descripcion">Descripción de la iniciativa (máximo 50 palabras):</label>
+    <textarea id="descripcion" name="descripcion" rows="3" required></textarea>
+
+    <label for="contacto">Persona de contacto:</label>
+    <input type="text" id="contacto" name="contacto" required />
+
+    <label for="telefono">Teléfono / WhatsApp:</label>
+    <input type="text" id="telefono" name="telefono" required />
+
+    <label for="email">Correo electrónico:</label>
+    <input type="email" id="email" name="email" required />
+
+    <label for="map">Ubicación de la iniciativa, sede o lugar de acciones (haz clic en el mapa):</label>
+    <div id="map"></div>
+    <input type="text" id="coordenadas" name="coordenadas" readonly required />
+
+    <label for="red">Red social principal:</label>
+    <select id="red" name="red" required>
+      <option value="Instagram">Instagram</option>
+      <option value="Facebook">Facebook</option>
+      <option value="Twitter">X (Twitter)</option>
+      <option value="TikTok">TikTok</option>
+      <option value="Otra">Otra</option>
+    </select>
+
+    <label for="usuario">Usuario de esa red social:</label>
+    <input type="text" id="usuario" name="usuario" required />
+
+    <label for="autorizacion">¿Autorizas la publicación de la información de contacto? (persona de contacto, teléfono, correo electrónico)</label>
+    <select id="autorizacion" name="autorizacion" required>
+      <option value="Sí">Sí</option>
+      <option value="No">No</option>
+    </select>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <div id="mensaje"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Inicializar mapa centrado en Bogotá por defecto
+    const map = L.map('map').setView([4.63, -74.07], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Si el navegador permite geolocalización, centrar mapa en ubicación actual
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        map.setView([lat, lng], 15);
+      });
+    }
+
+    let marker;
+    map.on('click', function(e) {
+      const coords = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+      document.getElementById('coordenadas').value = coords;
+
+      if (marker) {
+        marker.setLatLng(e.latlng);
+      } else {
+        marker = L.marker(e.latlng).addTo(map);
+      }
+    });
+
+    // Validación para limitar la descripción a 50 palabras
+    const descripcion = document.getElementById('descripcion');
+    descripcion.addEventListener('input', () => {
+      const words = descripcion.value.trim().split(/\s+/);
+      if (words.length > 50) {
+        descripcion.value = words.slice(0, 50).join(' ');
+      }
+    });
+
+    // URL del Web App de Google Apps Script
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvyVv14CNhHt1dRFrQO3rNfoT00RJkh_S_MkBicVWbT__jVR-P-x7nadGxmPX_6Wwf7g/exec';
+
+    document.getElementById('formulario').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const data = new URLSearchParams(new FormData(this));
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: data.toString()
+      })
+      .then(response => response.json())
+      .then(resp => {
+        if (resp.result === 'success') {
+          document.getElementById('mensaje').innerText = '✅ Datos enviados correctamente.';
+          this.reset();
+          if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+          }
+          document.getElementById('coordenadas').value = '';
+        } else {
+          document.getElementById('mensaje').innerText = '❌ Error: ' + resp.message;
+        }
+      })
+      .catch(err => {
+        document.getElementById('mensaje').innerText = '❌ Error al enviar los datos.';
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
