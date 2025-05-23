@@ -21,7 +21,7 @@
       color: #333;
       padding: 1.5rem;
       max-width: 800px;
-      margin: auto;
+      margin: 0 auto;
       line-height: 1.5;
     }
 
@@ -29,37 +29,39 @@
       font-size: 1.8rem;
       color: var(--primary-color);
       margin-bottom: 1rem;
+      text-align: center;
     }
 
     p {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
     }
 
     label {
       display: block;
       font-weight: 600;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.4rem;
     }
 
     input, select, button, textarea {
       width: 100%;
-      padding: 0.6rem;
-      margin-bottom: 0.75rem;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 1rem;
       box-sizing: border-box;
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     input:focus, select:focus, textarea:focus {
       border-color: var(--primary-color);
       outline: none;
+      box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
     }
 
     #map {
       height: 300px;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
       border-radius: 6px;
       border: 1px solid var(--border-color);
     }
@@ -70,8 +72,8 @@
       border: none;
       cursor: pointer;
       font-weight: 600;
-      transition: background-color 0.3s ease;
-      padding: 0.7rem;
+      padding: 0.8rem;
+      font-size: 1.1rem;
     }
 
     button:hover {
@@ -84,8 +86,8 @@
     }
 
     #mensaje {
-      margin-top: 1rem;
-      padding: 0.75rem;
+      margin: 1.5rem 0;
+      padding: 1rem;
       border-radius: 6px;
       display: none;
     }
@@ -105,22 +107,42 @@
     }
 
     .word-count {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #666;
       text-align: right;
-      margin-top: -0.3rem;
-      margin-bottom: 0.75rem;
+      margin-top: -0.8rem;
+      margin-bottom: 1rem;
     }
 
     .spinner {
       display: inline-block;
-      width: 1rem;
-      height: 1rem;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 3px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
       border-top-color: white;
       animation: spin 1s ease-in-out infinite;
-      margin-right: 0.5rem;
+      margin-right: 0.7rem;
+      vertical-align: middle;
+    }
+
+    #enlace-generado {
+      margin: 1rem 0;
+      padding: 0.8rem;
+      background-color: #f0f8ff;
+      border-radius: 6px;
+      border: 1px solid #d0e3ff;
+    }
+
+    #enlace-preview {
+      word-break: break-all;
+      color: var(--primary-color);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    #enlace-preview:hover {
+      text-decoration: underline;
     }
 
     @keyframes spin {
@@ -151,7 +173,7 @@
     <input type="text" id="iniciativa" name="iniciativa" required />
 
     <label for="descripcion">Descripción de la iniciativa (máximo 50 palabras):</label>
-    <textarea id="descripcion" name="descripcion" rows="3" required></textarea>
+    <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
     <div id="wordCount" class="word-count">0/50 palabras</div>
 
     <label for="contacto">Persona de contacto:</label>
@@ -180,6 +202,13 @@
     <label for="usuario">Usuario de esa red social:</label>
     <input type="text" id="usuario" name="usuario" required />
 
+    <div id="enlace-generado" style="display: none;">
+      <label>Enlace generado:</label>
+      <div><a href="#" id="enlace-preview" target="_blank" rel="noopener noreferrer"></a></div>
+    </div>
+
+    <input type="hidden" id="enlace_red_social" name="enlace_red_social" />
+
     <label for="autorizacion">¿Autorizas la publicación de la información de contacto?</label>
     <select id="autorizacion" name="autorizacion" required>
       <option value="" disabled selected>Selecciona una opción</option>
@@ -197,144 +226,251 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Configuración inicial
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQtzAGsImOEd1JHG7a1wRitHHArRGnRj70Ln5zwJxD462MYHX2t7pv6QTTvXKsLhEJug/exec';
-    const DEFAULT_MAP_CENTER = [4.63, -74.07];
-    const DEFAULT_ZOOM = 12;
-    const USER_ZOOM = 15;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Configuración inicial - ACTUALIZA ESTA URL CON LA TUYA
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4U27AL3AFvxCD9TU_aWpUj8_Qy5yniQrodX2tTlLY2uwvj5i6ZsgvBoXdgR4Jd1KrIg/exec';
+      const DEFAULT_MAP_CENTER = [4.63, -74.07];
+      const DEFAULT_ZOOM = 12;
+      const USER_ZOOM = 15;
 
-    // Mapa Leaflet
-    const map = L.map('map').setView(DEFAULT_MAP_CENTER, DEFAULT_ZOOM);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+      // Inicializar mapa
+      const map = L.map('map').setView(DEFAULT_MAP_CENTER, DEFAULT_ZOOM);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
 
-    let marker = null;
-    let isSubmitting = false;
+      let marker = null;
 
-    // Geolocalización
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => map.setView([coords.latitude, coords.longitude], USER_ZOOM),
-        err => console.warn('Ubicación no disponible:', err.message)
-      );
-    }
-
-    // Evento click en el mapa
-    map.on('click', e => {
-      const coords = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
-      document.getElementById('coordenadas').value = coords;
-
-      if (marker) marker.setLatLng(e.latlng);
-      else marker = L.marker(e.latlng).addTo(map);
-    });
-
-    // Contador de palabras
-    const descripcion = document.getElementById('descripcion');
-    const wordCountElement = document.getElementById('wordCount');
-
-    descripcion.addEventListener('input', () => {
-      const words = descripcion.value.trim().split(/\s+/).filter(Boolean);
-      let count = words.length;
-
-      if (count > 50) {
-        descripcion.value = words.slice(0, 50).join(' ');
-        count = 50;
-        wordCountElement.style.color = 'var(--error-color)';
-        wordCountElement.textContent = '50/50 palabras (límite alcanzado)';
-      } else {
-        wordCountElement.style.color = '#666';
-        wordCountElement.textContent = `${count}/50 palabras`;
+      // Configurar geolocalización
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          ({ coords }) => {
+            map.setView([coords.latitude, coords.longitude], USER_ZOOM);
+          },
+          (err) => {
+            console.warn('Geolocalización no disponible:', err.message);
+          }
+        );
       }
-    });
 
-    // Validación del formulario
-    function validateForm() {
-      const fields = document.querySelectorAll('#formulario [required]');
-      let valid = true;
+      // Evento click en el mapa
+      map.on('click', function(e) {
+        const coords = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+        document.getElementById('coordenadas').value = coords;
 
-      fields.forEach(f => {
-        if (!f.value.trim()) {
-          valid = false;
-          f.style.borderColor = 'var(--error-color)';
+        if (marker) {
+          marker.setLatLng(e.latlng);
         } else {
-          f.style.borderColor = 'var(--border-color)';
+          marker = L.marker(e.latlng).addTo(map);
         }
       });
 
-      if (!document.getElementById('coordenadas').value) {
-        showMessage('Por favor selecciona una ubicación en el mapa', 'error');
-        valid = false;
-      }
+      // Contador de palabras
+      const descripcion = document.getElementById('descripcion');
+      const wordCountElement = document.getElementById('wordCount');
 
-      return valid;
-    }
+      descripcion.addEventListener('input', function() {
+        const text = descripcion.value.trim();
+        const words = text ? text.split(/\s+/) : [];
+        const count = words.length;
 
-    // Mostrar mensajes
-    function showMessage(text, type) {
-      const el = document.getElementById('mensaje');
-      el.textContent = text;
-      el.className = type;
-      el.style.display = 'block';
-      if (type === 'success') setTimeout(() => el.style.display = 'none', 5000);
-    }
-
-    // Resetear formulario
-    function resetForm() {
-      document.getElementById('formulario').reset();
-      wordCountElement.textContent = '0/50 palabras';
-      if (marker) {
-        map.removeLayer(marker);
-        marker = null;
-      }
-      document.getElementById('coordenadas').value = '';
-    }
-
-    // Envío con Fetch API
-    document.getElementById('formulario').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (isSubmitting || !validateForm()) return;
-
-      isSubmitting = true;
-      const btn = document.getElementById('submitBtn');
-      const spinner = document.getElementById('spinner');
-      const buttonText = document.getElementById('buttonText');
-
-      btn.disabled = true;
-      spinner.style.display = 'inline-block';
-      buttonText.textContent = 'Enviando...';
-
-      try {
-        const formData = new URLSearchParams();
-        new FormData(document.getElementById('formulario')).forEach((value, key) => {
-          formData.append(key, value);
-        });
-
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
-
-        const data = await response.json();
-
-        if (data.result === 'success') {
-          showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
-          resetForm();
+        if (count > 50) {
+          descripcion.value = words.slice(0, 50).join(' ');
+          wordCountElement.textContent = '50/50 palabras (límite alcanzado)';
+          wordCountElement.style.color = 'var(--error-color)';
         } else {
-          throw new Error(data.message || 'Error en el servidor');
+          wordCountElement.textContent = `${count}/50 palabras`;
+          wordCountElement.style.color = count > 0 ? '#666' : '#999';
         }
-      } catch (error) {
-        console.error('Error en el envío:', error);
-        showMessage(`❌ Error: ${error.message || 'No se pudo completar el envío'}`, 'error');
-      } finally {
-        isSubmitting = false;
-        btn.disabled = false;
-        spinner.style.display = 'none';
-        buttonText.textContent = 'Enviar';
+      });
+
+      // Generar enlaces a redes sociales
+      function generarEnlaceSocial(red, usuario) {
+        if (!red || !usuario) return '';
+        
+        usuario = usuario.trim().replace(/^[@/]/, '');
+        if (!usuario) return '';
+        
+        const plataformas = {
+          'Instagram': `https://instagram.com/${usuario}`,
+          'Facebook': `https://facebook.com/${usuario}`,
+          'Twitter': `https://twitter.com/${usuario}`,
+          'TikTok': `https://tiktok.com/@${usuario}`
+        };
+        
+        return plataformas[red] || '';
       }
+
+      // Actualizar enlace social
+      function actualizarEnlaceSocial() {
+        const red = document.getElementById('red').value;
+        const usuario = document.getElementById('usuario').value;
+        const enlace = generarEnlaceSocial(red, usuario);
+        
+        document.getElementById('enlace_red_social').value = enlace;
+        
+        const previewDiv = document.getElementById('enlace-generado');
+        const previewLink = document.getElementById('enlace-preview');
+        
+        if (enlace) {
+          previewDiv.style.display = 'block';
+          previewLink.href = enlace;
+          previewLink.textContent = enlace;
+        } else {
+          previewDiv.style.display = 'none';
+        }
+      }
+
+      // Configurar eventos
+      document.getElementById('red').addEventListener('change', actualizarEnlaceSocial);
+      document.getElementById('usuario').addEventListener('input', actualizarEnlaceSocial);
+
+      // Validar formulario
+      function validateForm() {
+        let isValid = true;
+        const requiredFields = document.querySelectorAll('#formulario [required]');
+
+        requiredFields.forEach(field => {
+          if (!field.value.trim()) {
+            field.style.borderColor = 'var(--error-color)';
+            isValid = false;
+          } else {
+            field.style.borderColor = 'var(--border-color)';
+          }
+        });
+
+        if (!document.getElementById('coordenadas').value) {
+          showMessage('Por favor selecciona una ubicación en el mapa', 'error');
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      // Mostrar mensajes
+      function showMessage(text, type) {
+        const el = document.getElementById('mensaje');
+        el.textContent = text;
+        el.className = type;
+        el.style.display = 'block';
+        
+        if (type === 'success') {
+          setTimeout(() => {
+            el.style.display = 'none';
+          }, 5000);
+        }
+      }
+
+      // Resetear formulario
+      function resetForm() {
+        document.getElementById('formulario').reset();
+        document.getElementById('wordCount').textContent = '0/50 palabras';
+        document.getElementById('enlace-generado').style.display = 'none';
+        
+        if (marker) {
+          map.removeLayer(marker);
+          marker = null;
+        }
+        
+        document.getElementById('coordenadas').value = '';
+      }
+
+      // Enviar formulario - MÉTODO ALTERNATIVO PARA EVITAR CORS
+      document.getElementById('formulario').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) return;
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        document.getElementById('spinner').style.display = 'inline-block';
+        document.getElementById('buttonText').textContent = 'Enviando...';
+
+        try {
+          // Crear FormData en lugar de JSON para evitar problemas CORS
+          const formData = new FormData();
+          formData.append('iniciativa', document.getElementById('iniciativa').value.trim());
+          formData.append('descripcion', document.getElementById('descripcion').value.trim());
+          formData.append('contacto', document.getElementById('contacto').value.trim());
+          formData.append('telefono', document.getElementById('telefono').value.trim());
+          formData.append('email', document.getElementById('email').value.trim());
+          formData.append('coordenadas', document.getElementById('coordenadas').value.trim());
+          formData.append('red', document.getElementById('red').value);
+          formData.append('usuario', document.getElementById('usuario').value.trim());
+          formData.append('enlace_red_social', document.getElementById('enlace_red_social').value.trim());
+          formData.append('autorizacion', document.getElementById('autorizacion').value);
+
+          console.log('Enviando datos con FormData');
+
+          // Usar fetch con FormData (más compatible con Google Apps Script)
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+          });
+
+          console.log('Respuesta recibida:', response);
+
+          // Verificar si la respuesta es válida
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          // Intentar parsear la respuesta
+          let data;
+          try {
+            const textResponse = await response.text();
+            console.log('Texto de respuesta:', textResponse);
+            
+            // Intentar parsear como JSON
+            try {
+              data = JSON.parse(textResponse);
+            } catch {
+              // Si no es JSON válido, verificar si es texto de éxito
+              if (textResponse.toLowerCase().includes('success') || 
+                  textResponse.toLowerCase().includes('exitoso') ||
+                  textResponse.includes('✅')) {
+                data = { result: 'success' };
+              } else {
+                data = { result: 'error', message: textResponse };
+              }
+            }
+          } catch (parseError) {
+            console.error('Error al procesar respuesta:', parseError);
+            throw new Error('Error al procesar respuesta del servidor');
+          }
+
+          console.log('Datos procesados:', data);
+
+          if (data.result === 'success') {
+            showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
+            resetForm();
+          } else {
+            throw new Error(data.message || 'Error en el servidor');
+          }
+        } catch (error) {
+          console.error('Error completo:', error);
+          
+          // Mensajes de error más específicos
+          let errorMessage = 'No se pudo completar el envío';
+          
+          if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage = 'Error de conexión. Verifica tu conexión a internet y que la URL del script sea correcta.';
+          } else if (error.message.includes('CORS') || error.message.includes('405')) {
+            errorMessage = 'Error de configuración del servidor. Verifica que el Google Apps Script esté desplegado correctamente.';
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          showMessage(`❌ Error: ${errorMessage}`, 'error');
+        } finally {
+          btn.disabled = false;
+          document.getElementById('spinner').style.display = 'none';
+          document.getElementById('buttonText').textContent = 'Enviar';
+        }
+      });
+
+      // Inicialización final
+      actualizarEnlaceSocial();
     });
   </script>
 </body>
