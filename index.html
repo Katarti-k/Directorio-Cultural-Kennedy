@@ -3,93 +3,327 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Formulario Directorio Cultural</title>
+  <title>Directorio de iniciativas culturales y festivas de Kennedy</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 1rem;
-      max-width: 600px;
-      margin: auto;
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #1a252f;
+      --success-color: #28a745;
+      --error-color: #dc3545;
+      --border-color: #ccc;
+      --background-color: #f8f9fa;
     }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background-color);
+      color: #333;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+      line-height: 1.6;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+    }
+    
     label {
       display: block;
-      margin: 1em 0 0.5em;
-      font-weight: bold;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
     }
-    input, textarea {
+    
+    input, select, button, textarea {
       width: 100%;
-      padding: 0.5em;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
     }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+    
+    #map {
+      height: 300px;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    
     button {
-      margin-top: 1em;
-      padding: 0.7em 1.5em;
-      background-color: #4CAF50;
+      background-color: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 5px;
-      font-size: 1rem;
       cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      padding: 0.8rem;
     }
-    .success {
-      color: green;
-      margin-top: 1em;
+    
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    
+    #mensaje {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
       display: none;
+    }
+    
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+    
+    .word-count {
+      font-size: 0.8rem;
+      color: #666;
+      text-align: right;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-
-  <h1 style="text-align: left;">Directorio Cultural Kennedy</h1>
-  <p style="text-align: left; margin-bottom: 2em;">
-    Completa el siguiente formulario para registrar tu iniciativa cultural. Máximo 50 palabras en la descripción.
-  </p>
+  <h1>Directorio de iniciativas culturales y festivas de Kennedy</h1>
+  
+  <p>¡Bienvenidx!</p>
+  <p>Este formulario hace parte de la construcción colectiva de un Directorio de Iniciativas Culturales y Festivas de Kennedy.</p>
+  <p>Nuestro objetivo es visibilizar, conectar y fortalecer a las personas, colectivos y organizaciones que transforman el territorio a través de procesos culturales, artísticos, patrimoniales o festivos. La información recopilada servirá para crear un mapa público y un directorio abierto que ayude a identificar redes, sumar colaboraciones y hacer más visible nuestro quehacer comunitario.</p>
+  <p>📝 Por favor, completa los campos con claridad.</p>
 
   <form id="formulario">
-    <label for="nombre">Nombre de la iniciativa:</label>
-    <input type="text" id="nombre" name="nombre" required />
+    <label for="iniciativa">Nombre de la iniciativa:</label>
+    <input type="text" id="iniciativa" name="iniciativa" required />
 
-    <label for="correo">Correo de contacto:</label>
-    <input type="email" id="correo" name="correo" required />
+    <label for="descripcion">Descripción de la iniciativa (máximo 50 palabras):</label>
+    <textarea id="descripcion" name="descripcion" rows="3" required></textarea>
+    <div id="wordCount" class="word-count">0/50 palabras</div>
 
-    <label for="ubicacion">Ubicación (barrio, dirección, etc.):</label>
-    <input type="text" id="ubicacion" name="ubicacion" required />
+    <label for="contacto">Persona de contacto:</label>
+    <input type="text" id="contacto" name="contacto" required />
 
-    <label for="descripcion">Descripción (máx. 50 palabras):</label>
-    <textarea id="descripcion" name="descripcion" rows="4" maxlength="400" required></textarea>
+    <label for="telefono">Teléfono / WhatsApp:</label>
+    <input type="tel" id="telefono" name="telefono" required />
 
-    <button type="submit">Enviar</button>
-    <p id="mensaje" class="success">¡Enviado con éxito!</p>
+    <label for="email">Correo electrónico:</label>
+    <input type="email" id="email" name="email" required />
+
+    <label for="map">Ubicación de la iniciativa, sede o lugar de acciones (haz clic en el mapa):</label>
+    <div id="map"></div>
+    <input type="text" id="coordenadas" name="coordenadas" readonly required />
+
+    <label for="red">Red social principal:</label>
+    <select id="red" name="red" required>
+      <option value="" disabled selected>Selecciona una opción</option>
+      <option value="Instagram">Instagram</option>
+      <option value="Facebook">Facebook</option>
+      <option value="Twitter">X (Twitter)</option>
+      <option value="TikTok">TikTok</option>
+      <option value="Otra">Otra</option>
+    </select>
+
+    <label for="usuario">Usuario de esa red social:</label>
+    <input type="text" id="usuario" name="usuario" required />
+
+    <label for="autorizacion">¿Autorizas la publicación de la información de contacto? (persona de contacto, teléfono, correo electrónico)</label>
+    <select id="autorizacion" name="autorizacion" required>
+      <option value="" disabled selected>Selecciona una opción</option>
+      <option value="Sí">Sí</option>
+      <option value="No">No</option>
+    </select>
+
+    <button type="submit" id="submitBtn">Enviar</button>
   </form>
 
+  <div id="mensaje"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    document.getElementById("formulario").addEventListener("submit", function(event) {
-      event.preventDefault();
+    // Constantes de configuración
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZe_dGrN-40XuVMtwLvOCA6tOFaEywJHdhpDCrv_RJT3Q3k17AyM0SR4D18S6MA6h/exec';
+    const DEFAULT_MAP_CENTER = [4.63, -74.07];
+    const DEFAULT_ZOOM = 12;
+    const USER_ZOOM = 15;
 
-      const nombre = encodeURIComponent(document.getElementById("nombre").value);
-      const correo = encodeURIComponent(document.getElementById("correo").value);
-      const ubicacion = encodeURIComponent(document.getElementById("ubicacion").value);
-      const descripcion = encodeURIComponent(document.getElementById("descripcion").value);
+    // Inicializar mapa
+    const map = L.map('map').setView(DEFAULT_MAP_CENTER, DEFAULT_ZOOM);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-      const url = `https://script.google.com/macros/s/AKfycbxCZe_dGrN-40XuVMtwLvOCA6tOFaEywJHdhpDCrv_RJT3Q3k17AyM0SR4D18S6MA6h/exec?nombre=${nombre}&correo=${correo}&ubicacion=${ubicacion}&descripcion=${descripcion}`;
+    // Variables de estado
+    let marker = null;
+    let isSubmitting = false;
 
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            document.getElementById("mensaje").style.display = "block";
-            document.getElementById("formulario").reset();
-          } else {
-            alert("Ocurrió un error al enviar el formulario.");
-          }
-        })
-        .catch(error => {
-          console.error("Error al enviar los datos:", error);
-          alert("Error de red. Intenta de nuevo.");
-        });
+    // Cargar ubicación del usuario si está disponible
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude: lat, longitude: lng } = position.coords;
+          map.setView([lat, lng], USER_ZOOM);
+        },
+        error => {
+          console.warn('No se pudo obtener la ubicación:', error.message);
+        }
+      );
+    }
+
+    // Manejar clics en el mapa
+    map.on('click', function(e) {
+      const { lat, lng } = e.latlng;
+      const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      
+      document.getElementById('coordenadas').value = coords;
+      
+      if (marker) {
+        marker.setLatLng(e.latlng);
+      } else {
+        marker = L.marker(e.latlng).addTo(map);
+      }
     });
-  </script>
 
+    // Contador de palabras
+    const descripcion = document.getElementById('descripcion');
+    const wordCountElement = document.getElementById('wordCount');
+    
+    descripcion.addEventListener('input', () => {
+      const text = descripcion.value.trim();
+      const words = text ? text.split(/\s+/) : [];
+      const wordCount = words.length;
+      
+      wordCountElement.textContent = `${wordCount}/50 palabras`;
+      
+      if (wordCount > 50) {
+        wordCountElement.style.color = 'var(--error-color)';
+        descripcion.value = words.slice(0, 50).join(' ');
+        wordCountElement.textContent = '50/50 palabras (límite alcanzado)';
+      } else {
+        wordCountElement.style.color = '#666';
+      }
+    });
+
+    // Validación de formulario
+    function validateForm() {
+      const requiredFields = document.querySelectorAll('#formulario [required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          isValid = false;
+          field.style.borderColor = 'var(--error-color)';
+        } else {
+          field.style.borderColor = 'var(--border-color)';
+        }
+      });
+      
+      return isValid;
+    }
+
+    // Manejar envío del formulario
+    document.getElementById('formulario').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (isSubmitting) return;
+      
+      if (!validateForm()) {
+        showMessage('Por favor completa todos los campos requeridos', 'error');
+        return;
+      }
+      
+      isSubmitting = true;
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      
+      try {
+        const formData = new FormData(this);
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+          },
+          body: new URLSearchParams(formData).toString()
+        });
+        
+        const result = await response.json();
+        
+        if (result.result === 'success') {
+          showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
+          resetForm();
+        } else {
+          showMessage(`❌ Error: ${result.message || 'No se pudo completar el envío'}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error al enviar el formulario:', error);
+        showMessage('❌ Error al enviar los datos. Por favor intenta nuevamente.', 'error');
+      } finally {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar';
+      }
+    });
+
+    // Mostrar mensajes al usuario
+    function showMessage(text, type) {
+      const messageElement = document.getElementById('mensaje');
+      messageElement.textContent = text;
+      messageElement.className = type;
+      
+      // Ocultar mensaje después de 5 segundos (excepto errores importantes)
+      if (type === 'success') {
+        setTimeout(() => {
+          messageElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    // Resetear formulario
+    function resetForm() {
+      document.getElementById('formulario').reset();
+      document.getElementById('wordCount').textContent = '0/50 palabras';
+      
+      if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+      }
+      
+      document.getElementById('coordenadas').value = '';
+    }
+  </script>
 </body>
 </html>
