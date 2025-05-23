@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Iniciativas culturales y festivas de Kennedy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+    #title-bar {
+      background-color: #2c3e50;
+      color: white;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      user-select: none;
+    }
+    #map {
+      height: calc(100vh - 60px);
+      width: 100%;
+    }
+    @media (max-width: 600px) {
+      #title-bar {
+        padding: 0.8rem 1rem;
+        font-size: 1.1rem;
+      }
+      #map {
+        height: calc(100vh - 50px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <h1>Iniciativas culturales y festivas de Kennedy</h1>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([4.6415, -74.1217], 12);
+    const bounds = [];
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    function crearMarcador(nombre, descripcion, contacto, telefono, correo, enlace, lat, lng) {
+      const contenido = `
+        ${nombre}<br/>
+        ${descripcion}<br/><br/>
+        ${contacto}<br/>
+        ${telefono}<br/>
+        ${correo}<br/>
+        <a href="${enlace}" target="_blank" rel="noopener noreferrer">${enlace}</a>
+      `;
+
+      L.marker([lat, lng])
+        .bindPopup(contenido)
+        .addTo(map);
+
+      bounds.push([lat, lng]);
+    }
+
+    function parseGoogleSheetJSON(responseText) {
+      const start = responseText.indexOf('(') + 1;
+      const end = responseText.lastIndexOf(')');
+      const jsonStr = responseText.substring(start, end);
+      return JSON.parse(jsonStr);
+    }
+
+    function cargarDatos() {
+      const baseUrl = 'https://docs.google.com/spreadsheets/d/1bHIO0-nLcjKEcJtifEe2_Ok3s_2Sqwu54d_W7dxWgEY/gviz/tq?sheet=Respuestas&tqx=out:json';
+      const url = baseUrl + '&nocache=' + Date.now();
+
+      fetch(url, { cache: 'no-store' })
+        .then(res => res.text())
+        .then(text => {
+          const json = parseGoogleSheetJSON(text);
+          const rows = json.table.rows;
+
+          rows.forEach(row => {
+            const nombre = row.c[0]?.v || 'Sin nombre';
+            const descripcion = row.c[1]?.v || '';
+            const contacto = row.c[2]?.v || '';
+            const telefono = row.c[3]?.v || '';
+            const correo = row.c[4]?.v || '';
+            const coord = row.c[5]?.v || '';
+            const enlace = row.c[8]?.v || '';
+
+            if (coord.includes(',')) {
+              const [latStr, lngStr] = coord.split(',').map(s => s.trim());
+              const lat = parseFloat(latStr);
+              const lng = parseFloat(lngStr);
+
+              if (!isNaN(lat) && !isNaN(lng)) {
+                crearMarcador(nombre, descripcion, contacto, telefono, correo, enlace, lat, lng);
+              }
+            }
+          });
+
+          if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [30, 30] });
+          } else {
+            console.warn('No se cargaron puntos al mapa.');
+          }
+        })
+        .catch(err => {
+          console.error('Error al cargar la hoja de cálculo:', err);
+        });
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>
