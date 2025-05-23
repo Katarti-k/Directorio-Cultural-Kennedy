@@ -14,52 +14,56 @@
       --border-color: #ccc;
       --background-color: #f8f9fa;
     }
-    
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--background-color);
       color: #333;
-      padding: 2rem;
+      padding: 1.5rem;
       max-width: 800px;
       margin: auto;
-      line-height: 1.6;
+      line-height: 1.5;
     }
-    
+
     h1 {
       font-size: 1.8rem;
       color: var(--primary-color);
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
-    
+
+    p {
+      margin-bottom: 0.5rem;
+    }
+
     label {
       display: block;
       font-weight: 600;
       margin-bottom: 0.3rem;
     }
-    
+
     input, select, button, textarea {
       width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
+      padding: 0.6rem;
+      margin-bottom: 0.75rem;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 1rem;
       box-sizing: border-box;
       transition: border-color 0.3s ease;
     }
-    
+
     input:focus, select:focus, textarea:focus {
       border-color: var(--primary-color);
       outline: none;
     }
-    
+
     #map {
       height: 300px;
-      margin-bottom: 1rem;
-      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      border-radius: 6px;
       border: 1px solid var(--border-color);
     }
-    
+
     button {
       background-color: var(--primary-color);
       color: white;
@@ -67,51 +71,52 @@
       cursor: pointer;
       font-weight: 600;
       transition: background-color 0.3s ease;
-      padding: 0.8rem;
+      padding: 0.7rem;
     }
-    
+
     button:hover {
       background-color: var(--secondary-color);
     }
-    
+
     button:disabled {
       background-color: #95a5a6;
       cursor: not-allowed;
     }
-    
+
     #mensaje {
       margin-top: 1rem;
       padding: 0.75rem;
-      border-radius: 8px;
+      border-radius: 6px;
       display: none;
     }
-    
+
     .success {
       background-color: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
       display: block;
     }
-    
+
     .error {
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
       display: block;
     }
-    
+
     .word-count {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #666;
       text-align: right;
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
+      margin-top: -0.3rem;
+      margin-bottom: 0.75rem;
     }
-    
+
     @media (max-width: 600px) {
       body {
         padding: 1rem;
       }
+
       h1 {
         font-size: 1.5rem;
       }
@@ -120,10 +125,10 @@
 </head>
 <body>
   <h1>Directorio de iniciativas culturales y festivas de Kennedy</h1>
-  
+
   <p>¡Bienvenidx!</p>
-  <p>Este formulario hace parte de la construcción colectiva de un Directorio de Iniciativas Culturales y Festivas de Kennedy.</p>
-  <p>Nuestro objetivo es visibilizar, conectar y fortalecer a las personas, colectivos y organizaciones que transforman el territorio a través de procesos culturales, artísticos, patrimoniales o festivos. La información recopilada servirá para crear un mapa público y un directorio abierto que ayude a identificar redes, sumar colaboraciones y hacer más visible nuestro quehacer comunitario.</p>
+  <p>Este formulario hace parte de la construcción colectiva de un Directorio de Iniciativas Culturales y Festivas de Kennedy. Nuestro objetivo es visibilizar, conectar y fortalecer a las personas, colectivos y organizaciones que transforman el territorio a través de procesos culturales, artísticos, patrimoniales o festivos.</p>
+  <p>La información recopilada servirá para crear un mapa público y un directorio abierto que ayude a identificar redes, sumar colaboraciones y hacer más visible nuestro quehacer comunitario.</p>
   <p>📝 Por favor, completa los campos con claridad.</p>
 
   <form id="formulario">
@@ -143,7 +148,7 @@
     <label for="email">Correo electrónico:</label>
     <input type="email" id="email" name="email" required />
 
-    <label for="map">Ubicación de la iniciativa, sede o lugar de acciones (haz clic en el mapa):</label>
+    <label for="map">Ubicación, sede lugar principal de acción (haz clic en el mapa):</label>
     <div id="map"></div>
     <input type="text" id="coordenadas" name="coordenadas" readonly required />
 
@@ -160,7 +165,7 @@
     <label for="usuario">Usuario de esa red social:</label>
     <input type="text" id="usuario" name="usuario" required />
 
-    <label for="autorizacion">¿Autorizas la publicación de la información de contacto? (persona de contacto, teléfono, correo electrónico)</label>
+    <label for="autorizacion">¿Autorizas la publicación de la información de contacto?</label>
     <select id="autorizacion" name="autorizacion" required>
       <option value="" disabled selected>Selecciona una opción</option>
       <option value="Sí">Sí</option>
@@ -174,190 +179,136 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Constantes de configuración
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxFJLiXdi0OUrS2ItyPZ5SLgKKXVm2EcnN5Xc20UCo1qNLFRPKlJq9y4hHW4S6Zyg--A/exec';
     const DEFAULT_MAP_CENTER = [4.63, -74.07];
     const DEFAULT_ZOOM = 12;
     const USER_ZOOM = 15;
 
-    // Inicializar mapa
     const map = L.map('map').setView(DEFAULT_MAP_CENTER, DEFAULT_ZOOM);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Variables de estado
     let marker = null;
     let isSubmitting = false;
 
-    // Cargar ubicación del usuario si está disponible
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        position => {
-          const { latitude: lat, longitude: lng } = position.coords;
-          map.setView([lat, lng], USER_ZOOM);
-        },
-        error => {
-          console.warn('No se pudo obtener la ubicación:', error.message);
-        }
+        ({ coords }) => map.setView([coords.latitude, coords.longitude], USER_ZOOM),
+        err => console.warn('Ubicación no disponible:', err.message)
       );
     }
 
-    // Manejar clics en el mapa
-    map.on('click', function(e) {
-      const { lat, lng } = e.latlng;
-      const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      
+    map.on('click', e => {
+      const coords = `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
       document.getElementById('coordenadas').value = coords;
-      
-      if (marker) {
-        marker.setLatLng(e.latlng);
-      } else {
-        marker = L.marker(e.latlng).addTo(map);
-      }
+
+      if (marker) marker.setLatLng(e.latlng);
+      else marker = L.marker(e.latlng).addTo(map);
     });
 
-    // Contador de palabras
     const descripcion = document.getElementById('descripcion');
     const wordCountElement = document.getElementById('wordCount');
-    
+
     descripcion.addEventListener('input', () => {
-      const text = descripcion.value.trim();
-      const words = text ? text.split(/\s+/) : [];
-      const wordCount = words.length;
-      
-      wordCountElement.textContent = `${wordCount}/50 palabras`;
-      
-      if (wordCount > 50) {
-        wordCountElement.style.color = 'var(--error-color)';
+      const words = descripcion.value.trim().split(/\s+/).filter(Boolean);
+      let count = words.length;
+
+      if (count > 50) {
         descripcion.value = words.slice(0, 50).join(' ');
+        count = 50;
+        wordCountElement.style.color = 'var(--error-color)';
         wordCountElement.textContent = '50/50 palabras (límite alcanzado)';
       } else {
         wordCountElement.style.color = '#666';
+        wordCountElement.textContent = `${count}/50 palabras`;
       }
     });
 
-    // Validación de formulario
     function validateForm() {
-      const requiredFields = document.querySelectorAll('#formulario [required]');
-      let isValid = true;
-      
-      requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-          isValid = false;
-          field.style.borderColor = 'var(--error-color)';
+      const fields = document.querySelectorAll('#formulario [required]');
+      let valid = true;
+
+      fields.forEach(f => {
+        if (!f.value.trim()) {
+          valid = false;
+          f.style.borderColor = 'var(--error-color)';
         } else {
-          field.style.borderColor = 'var(--border-color)';
+          f.style.borderColor = 'var(--border-color)';
         }
       });
-      
-      // Validación adicional para coordenadas
+
       if (!document.getElementById('coordenadas').value) {
-        isValid = false;
         showMessage('Por favor selecciona una ubicación en el mapa', 'error');
+        valid = false;
       }
-      
-      return isValid;
+
+      return valid;
     }
 
-    // Mostrar mensajes al usuario
     function showMessage(text, type) {
-      const messageElement = document.getElementById('mensaje');
-      messageElement.textContent = text;
-      messageElement.className = type;
-      messageElement.style.display = 'block';
-      
-      // Ocultar mensaje después de 5 segundos (excepto errores importantes)
-      if (type === 'success') {
-        setTimeout(() => {
-          messageElement.style.display = 'none';
-        }, 5000);
-      }
+      const el = document.getElementById('mensaje');
+      el.textContent = text;
+      el.className = type;
+      el.style.display = 'block';
+      if (type === 'success') setTimeout(() => el.style.display = 'none', 5000);
     }
 
-    // Resetear formulario
     function resetForm() {
       document.getElementById('formulario').reset();
-      document.getElementById('wordCount').textContent = '0/50 palabras';
-      
+      wordCountElement.textContent = '0/50 palabras';
       if (marker) {
         map.removeLayer(marker);
         marker = null;
       }
-      
       document.getElementById('coordenadas').value = '';
     }
 
-    // Función de envío del formulario con solución CORS (JSONP)
-    document.getElementById('formulario').addEventListener('submit', function(e) {
+    document.getElementById('formulario').addEventListener('submit', e => {
       e.preventDefault();
-      
-      if (isSubmitting) return;
-      
-      if (!validateForm()) {
-        return;
-      }
-      
+      if (isSubmitting || !validateForm()) return;
+
       isSubmitting = true;
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
-      
-      // Crear un nombre único para el callback
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
       const callbackName = 'jsonpCallback_' + Math.random().toString(36).substr(2, 8);
-      
-      // Definir la función de callback
-      window[callbackName] = function(response) {
-        // Limpiar después de recibir la respuesta
+      window[callbackName] = res => {
         delete window[callbackName];
         clearTimeout(timeout);
-        
-        if (response.result === 'success') {
+
+        if (res.result === 'success') {
           showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
           resetForm();
         } else {
-          showMessage(`❌ Error: ${response.message || 'No se pudo completar el envío'}`, 'error');
+          showMessage(`❌ Error: ${res.message || 'No se pudo completar el envío'}`, 'error');
         }
-        
+
         isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar';
+        btn.disabled = false;
+        btn.textContent = 'Enviar';
       };
-      
-      // Obtener los datos del formulario
-      const formData = new FormData(document.getElementById('formulario'));
-      const params = new URLSearchParams();
-      
-      // Añadir todos los parámetros
-      formData.forEach((value, key) => {
-        params.append(key, value);
-      });
-      
-      // Añadir el parámetro callback
-      params.append('callback', callbackName);
-      
-      // Crear el script para JSONP
+
+      const data = new URLSearchParams();
+      new FormData(document.getElementById('formulario')).forEach((v, k) => data.append(k, v));
+      data.append('callback', callbackName);
+
       const script = document.createElement('script');
-      script.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-      
-      // Timeout para manejar fallos
+      script.src = `${GOOGLE_SCRIPT_URL}?${data.toString()}`;
+      document.body.appendChild(script);
+
       const timeout = setTimeout(() => {
         if (window[callbackName]) {
           delete window[callbackName];
           showMessage('❌ El servidor no respondió. Por favor intenta nuevamente.', 'error');
           isSubmitting = false;
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Enviar';
+          btn.disabled = false;
+          btn.textContent = 'Enviar';
         }
       }, 10000);
-      
-      // Añadir el script al documento
-      document.body.appendChild(script);
-      
-      // Limpiar el script después de cargar
-      script.onload = function() {
-        document.body.removeChild(script);
-      };
+
+      script.onload = () => document.body.removeChild(script);
     });
   </script>
 </body>
