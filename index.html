@@ -175,7 +175,7 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     // Constantes de configuración
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZe_dGrN-40XuVMtwLvOCA6tOFaEywJHdhpDCrv_RJT3Q3k17AyM0SR4D18S6MA6h/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxFJLiXdi0OUrS2ItyPZ5SLgKKXVm2EcnN5Xc20UCo1qNLFRPKlJq9y4hHW4S6Zyg--A/exec';
     const DEFAULT_MAP_CENTER = [4.63, -74.07];
     const DEFAULT_ZOOM = 12;
     const USER_ZOOM = 15;
@@ -251,58 +251,21 @@
         }
       });
       
+      // Validación adicional para coordenadas
+      if (!document.getElementById('coordenadas').value) {
+        isValid = false;
+        showMessage('Por favor selecciona una ubicación en el mapa', 'error');
+      }
+      
       return isValid;
     }
-
-    // Manejar envío del formulario
-    document.getElementById('formulario').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (isSubmitting) return;
-      
-      if (!validateForm()) {
-        showMessage('Por favor completa todos los campos requeridos', 'error');
-        return;
-      }
-      
-      isSubmitting = true;
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
-      
-      try {
-        const formData = new FormData(this);
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-          },
-          body: new URLSearchParams(formData).toString()
-        });
-        
-        const result = await response.json();
-        
-        if (result.result === 'success') {
-          showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
-          resetForm();
-        } else {
-          showMessage(`❌ Error: ${result.message || 'No se pudo completar el envío'}`, 'error');
-        }
-      } catch (error) {
-        console.error('Error al enviar el formulario:', error);
-        showMessage('❌ Error al enviar los datos. Por favor intenta nuevamente.', 'error');
-      } finally {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar';
-      }
-    });
 
     // Mostrar mensajes al usuario
     function showMessage(text, type) {
       const messageElement = document.getElementById('mensaje');
       messageElement.textContent = text;
       messageElement.className = type;
+      messageElement.style.display = 'block';
       
       // Ocultar mensaje después de 5 segundos (excepto errores importantes)
       if (type === 'success') {
@@ -324,6 +287,78 @@
       
       document.getElementById('coordenadas').value = '';
     }
+
+    // Función de envío del formulario con solución CORS (JSONP)
+    document.getElementById('formulario').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      if (isSubmitting) return;
+      
+      if (!validateForm()) {
+        return;
+      }
+      
+      isSubmitting = true;
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      
+      // Crear un nombre único para el callback
+      const callbackName = 'jsonpCallback_' + Math.random().toString(36).substr(2, 8);
+      
+      // Definir la función de callback
+      window[callbackName] = function(response) {
+        // Limpiar después de recibir la respuesta
+        delete window[callbackName];
+        clearTimeout(timeout);
+        
+        if (response.result === 'success') {
+          showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
+          resetForm();
+        } else {
+          showMessage(`❌ Error: ${response.message || 'No se pudo completar el envío'}`, 'error');
+        }
+        
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar';
+      };
+      
+      // Obtener los datos del formulario
+      const formData = new FormData(document.getElementById('formulario'));
+      const params = new URLSearchParams();
+      
+      // Añadir todos los parámetros
+      formData.forEach((value, key) => {
+        params.append(key, value);
+      });
+      
+      // Añadir el parámetro callback
+      params.append('callback', callbackName);
+      
+      // Crear el script para JSONP
+      const script = document.createElement('script');
+      script.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+      
+      // Timeout para manejar fallos
+      const timeout = setTimeout(() => {
+        if (window[callbackName]) {
+          delete window[callbackName];
+          showMessage('❌ El servidor no respondió. Por favor intenta nuevamente.', 'error');
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar';
+        }
+      }, 10000);
+      
+      // Añadir el script al documento
+      document.body.appendChild(script);
+      
+      // Limpiar el script después de cargar
+      script.onload = function() {
+        document.body.removeChild(script);
+      };
+    });
   </script>
 </body>
 </html>
