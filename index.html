@@ -176,7 +176,7 @@
     <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
     <div id="wordCount" class="word-count">0/50 palabras</div>
 
-    <label for="contacto">Persona de contacto:</label>
+    <label for="contacto">Nombre de contacto:</label>
     <input type="text" id="contacto" name="contacto" required />
 
     <label for="telefono">Teléfono / WhatsApp:</label>
@@ -185,7 +185,7 @@
     <label for="email">Correo electrónico:</label>
     <input type="email" id="email" name="email" required />
 
-    <label for="map">Ubicación de la iniciativa (haz clic en el mapa):</label>
+    <label for="map">Sede o lugar de acción de la iniciativa (haz clic en el mapa):</label>
     <div id="map"></div>
     <input type="text" id="coordenadas" name="coordenadas" readonly required />
 
@@ -199,11 +199,11 @@
       <option value="Otra">Otra</option>
     </select>
 
-    <label for="usuario">Usuario de esa red social:</label>
+    <label for="usuario">Nombre de perfil:</label>
     <input type="text" id="usuario" name="usuario" required />
 
     <div id="enlace-generado" style="display: none;">
-      <label>Enlace generado:</label>
+      <label>Enlace:</label>
       <div><a href="#" id="enlace-preview" target="_blank" rel="noopener noreferrer"></a></div>
     </div>
 
@@ -349,17 +349,17 @@
 
       // Mostrar mensajes
       function showMessage(text, type) {
-        const el = document.getElementById('mensaje');
-        el.textContent = text;
-        el.className = type;
-        el.style.display = 'block';
-        
-        if (type === 'success') {
-          setTimeout(() => {
-            el.style.display = 'none';
-          }, 5000);
-        }
-      }
+  const el = document.getElementById('mensaje');
+  el.innerHTML = text;
+  el.className = type;
+  el.style.display = 'block';
+
+  if (type === 'success') {
+    setTimeout(() => {
+      el.style.display = 'none';
+    }, 5000);
+  }
+}
 
       // Resetear formulario
       function resetForm() {
@@ -442,7 +442,7 @@
           console.log('Datos procesados:', data);
 
           if (data.result === 'success') {
-            showMessage('✅ Datos enviados correctamente. ¡Gracias por tu contribución!', 'success');
+            showMessage('✅ Datos enviados correctamente. <a href="https://katarti-k.github.io/Directorio-Cultural-Kennedy/mapa.html" target="_blank" style="color: #155724; text-decoration: underline;">Haz clic aquí para ver el mapa de iniciativas.</a>', 'success');
             resetForm();
           } else {
             throw new Error(data.message || 'Error en el servidor');
