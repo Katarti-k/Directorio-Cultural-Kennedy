@@ -51,23 +51,6 @@
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    function crearMarcador(nombre, descripcion, contacto, telefono, correo, enlace, lat, lng) {
-      const contenido = `
-        ${nombre}<br/>
-        ${descripcion}<br/><br/>
-        ${contacto}<br/>
-        ${telefono}<br/>
-        ${correo}<br/>
-        <a href="${enlace}" target="_blank" rel="noopener noreferrer">${enlace}</a>
-      `;
-
-      L.marker([lat, lng])
-        .bindPopup(contenido)
-        .addTo(map);
-
-      bounds.push([lat, lng]);
-    }
-
     function parseGoogleSheetJSON(responseText) {
       const start = responseText.indexOf('(') + 1;
       const end = responseText.lastIndexOf(')');
@@ -93,6 +76,7 @@
             const correo = row.c[4]?.v || '';
             const coord = row.c[5]?.v || '';
             const enlace = row.c[8]?.v || '';
+            const mostrarContacto = (row.c[9]?.v || '').toLowerCase().trim(); // "sí" o "no"
 
             if (coord.includes(',')) {
               const [latStr, lngStr] = coord.split(',').map(s => s.trim());
@@ -100,7 +84,26 @@
               const lng = parseFloat(lngStr);
 
               if (!isNaN(lat) && !isNaN(lng)) {
-                crearMarcador(nombre, descripcion, contacto, telefono, correo, enlace, lat, lng);
+                let contenido = `
+                  <strong>${nombre}</strong><br/>
+                  ${descripcion}<br/><br/>
+                `;
+
+                if (mostrarContacto === 'sí') {
+                  contenido += `
+                    ${contacto}<br/>
+                    ${telefono}<br/>
+                    ${correo}<br/>
+                  `;
+                }
+
+                contenido += `<a href="${enlace}" target="_blank" rel="noopener noreferrer">${enlace}</a>`;
+
+                L.marker([lat, lng])
+                  .bindPopup(contenido)
+                  .addTo(map);
+
+                bounds.push([lat, lng]);
               }
             }
           });
